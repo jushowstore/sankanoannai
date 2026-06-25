@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>出欠確認案内作成 v12</title>
+<style>
+body{font-family:sans-serif;max-width:1200px;margin:auto;padding:15px}
+.card{border:1px solid #ccc;border-radius:8px;padding:10px;margin:10px 0}
+input,select,textarea{width:100%;box-sizing:border-box;padding:6px;margin:2px 0}
+textarea{height:350px}
+button{padding:10px;margin:5px;cursor:pointer}
+.copy-btn{background:#e0e0e0;border:none;border-radius:4px;width:auto;font-size:12px}
+.btn-clear{background:#ffcccc}
+.btn-line{background:#06c755;color:white}
+</style>
+</head>
+<body>
+<h2>出欠確認案内作成 v12</h2>
+
+<div class="card">
+<label>日数</label>
+<select id="days" onchange="changeDays()">
+<option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option>
+</select>
+
+<label>回答期限</label>
+<input type="date" id="deadline_date" oninput="saveAll()">
+<input type="time" id="deadline_time" oninput="saveAll()">
+</div>
+
+<div id="games"></div>
+
+<button onclick="generate()">案内文作成</button>
+<button class="btn-clear" onclick="clearAll()">すべてクリア</button>
+<button class="btn-line" onclick="shareLine()">LINEで共有</button>
+<textarea id="out"></textarea>
+
+<script>
+const marks=["①","②","③","④","⑤","⑥","⑦"];
+const week=["日","月","火","水","木","金","土"];
+const keys = ['date','match','opp','target','place','meet'];
+const timeKeys = ['start','meetTime','depart'];
+
+// 時刻フォーマットを「○○時○○分」に固定（0分も00分と表示）
+function formatJpTime(timeStr) {
+    if(!timeStr) return "";
+    const [h, m] = timeStr.split(':');
+    const hh = parseInt(h);
+    const mm = m.padStart(2, '0'); // 0の場合は00とする
+    return hh + "時" + mm + "分";
+}
+
+function saveAll(){
+    localStorage.setItem("days", document.getElementById("days").value);
+    localStorage.setItem("deadline_date", document.getElementById("deadline_date").value);
+    localStorage.setItem("deadline_time", document.getElementById("deadline_time").value);
+    let n = Number(document.getElementById("days").value);
+    for(let i=1; i<=n; i++){
+        keys.forEach(k => {
+            let el = document.getElementById(k+i);
+            if(el) localStorage.setItem(k+i, el.value);
+        });
+        timeKeys.forEach(k => {
+            let modeEl = document.getElementById(k+'_mode'+i);
+            if(modeEl) localStorage.setItem(k+'_mode'+i, modeEl.value);
+            let timeEl = document.getElementById(k+'_time'+i);
+            if(timeEl) localStorage.setItem(k+'_time'+i, timeEl.value);
+            let textEl = document.getElementById(k+'_text'+i);
+            if(textEl) localStorage.setItem(k+'_text'+i, textEl.value);
+        });
+    }
+}
+
+function clearAll(){
+    if(confirm("入力内容をすべて削除しますか？")){
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+function shareLine(){
+    const text = document.getElementById("out").value;
+    if(!text) { alert("先に「案内文作成」ボタンを押してください。"); return; }
+    const url = "https://line.me/R/share?text=" + encodeURIComponent(text);
+    window.open(url, '_blank');
+}
+
+function changeDays(){
+    saveAll();
+    render();
+}
+
+function copyToNext(i){
+    const next = i + 1;
+    keys.forEach(k => document.getElementById(k+next).value = document.getElementById(k+i).value);
+    timeKeys.forEach(k => {
+        document.getElementById(k+'_mode'+next).value = document.getElementById(k+'_mode'+i).value;
+        document.getElementById(k+'_time'+next).value = document.getElementById(k+'_time'+i).value;
+        document.getElementById(k+'_text'+next).value = document.getElementById(k+'_text'+i).value;
+        toggle(next, k);
+    });
+    saveAll();
+}
+
+function toggle(i, id){
+    const mode = document.getElementById(id+"_mode"+i).value;
+    document.getElementById(id+"_time"+i).style.display = (mode==="time") ? "block" : "none";
+    document.getElementById(id+"_text"+i).style.display = (mode==="text") ? "block" : "none";
+    saveAll();
+}
+
+function timeBlock(i, id, label){
+    const mode = localStorage.getItem(`${id}_mode${i}`) || "undecided";
+    const timeVal = localStorage.getItem(`${id}_time${i}`) || "";
+    const textVal = localStorage.getItem(`${id}_text${i}`) || "";
+    return `
+    <label>${label}</label>
+    <select id="${id}_mode${i}" onchange="toggle(${i}, '${id}')">
+     <option value="undecided" ${mode=="undecided"?'selected':''}>未定</option>
+     <option value="time" ${mode=="time"?'selected':''}>時刻選択</option>
+     <option value="text" ${mode=="text"?'selected':''}>自由入力</option>
+    </select>
+    <input type="time" id="${id}_time${i}" value="${timeVal}" style="display:${mode=="time"?'block':'none'}" oninput="saveAll()">
+    <input type="text" id="${id}_text${i}" value="${textVal}" style="display:${mode=="text"?'block':'none'}" oninput="saveAll()">
+    `;
+}
+
+function render(){
+    let n = Number(document.getElementById("days").value);
+    let html = '';
+    for(let i=1; i<=n; i++){
+        let copyBtn = i < n ? `<button class="copy-btn" onclick="copyToNext(${i})">${marks[i-1]}の内容を${marks[i]}にコピペ</button>` : "";
+        html += `
+        <div class="card">
+         <h3>${marks[i-1]} ${copyBtn}</h3>
+         <label>日付</label><input type="date" id="date${i}" value="${localStorage.getItem('date'+i)||''}" oninput="saveAll()">
+         <label>試合名</label><input id="match${i}" value="${localStorage.getItem('match'+i)||''}" oninput="saveAll()">
+         <label>対戦相手</label><input id="opp${i}" value="${localStorage.getItem('opp'+i)||''}" oninput="saveAll()">
+         <label>対象</label><input id="target${i}" value="${localStorage.getItem('target'+i)||'全学年'}" oninput="saveAll()">
+         <label>場所</label><input id="place${i}" value="${localStorage.getItem('place'+i)||''}" oninput="saveAll()">
+         ${timeBlock(i, "start", "試合開始")}
+         <label>集合場所</label><input id="meet${i}" value="${localStorage.getItem('meet'+i)||''}" oninput="saveAll()">
+         ${timeBlock(i, "meetTime", "集合時分")}
+         ${timeBlock(i, "depart", "出発時分")}
+        </div>`;
+    }
+    document.getElementById("games").innerHTML = html;
+}
+
+const savedDays = localStorage.getItem("days") || 1;
+document.getElementById("days").value = savedDays;
+document.getElementById("deadline_date").value = localStorage.getItem("deadline_date") || "";
+document.getElementById("deadline_time").value = localStorage.getItem("deadline_time") || "";
+render();
+
+function jp(d){ if(!d)return ""; let x=new Date(d); return (x.getMonth()+1)+"月"+x.getDate()+"日("+week[x.getDay()]+")"; }
+function deadlineFormat(d, t){ 
+    if(!d) return ""; 
+    let x=new Date(d); 
+    let tStr = t ? formatJpTime(t) : ""; 
+    return (x.getMonth()+1)+"月"+x.getDate()+"日("+week[x.getDay()]+")"+tStr; 
+}
+function getTime(i, id){
+ const mode = document.getElementById(id+"_mode"+i).value;
+ if(mode==="time") return formatJpTime(document.getElementById(id+"_time"+i).value)||"未定";
+ if(mode==="text") return document.getElementById(id+"_text"+i).value||"未定";
+ return "未定";
+}
+
+function generate(){
+ let n = Number(document.getElementById("days").value);
+ let dates = [];
+ for(let i=1; i<=n; i++) dates.push(jp(document.getElementById("date"+i).value));
+ 
+ let txt = dates.join(",")+"出欠確認\n";
+ txt += "回答期限："+deadlineFormat(deadline_date.value, deadline_time.value)+"\n\n";
+ txt += "運営役より下記試合についての案内です。出欠回答をよろしくお願い致します。\n※△の方は⭕️で回答してください。\n\n";
+ 
+ const getVal = (idBase) => [...Array(n)].map((_,i)=>document.getElementById(idBase+(i+1)).value);
+ 
+ txt += "■日時\n";
+ for(let i=1;i<=n;i++) {
+    let prefix = (n > 1) ? marks[i-1] : "";
+    txt+=" "+prefix+jp(document.getElementById("date"+i).value)+"\n";
+ }
+ 
+ const section = (t, vals) => {
+     let s = "\n■"+t+"\n";
+     if(vals.every((v,_,arr)=>v===arr[0])) s += " "+vals[0]+"\n";
+     else vals.forEach((v,i)=>s+=" "+marks[i]+v+"\n");
+     return s;
+ };
+
+ txt += section("試合名", getVal("match"));
+ txt += section("対戦相手", getVal("opp"));
+ txt += section("対象", getVal("target"));
+ txt += section("場所", getVal("place"));
+ txt += section("試合開始", [...Array(n)].map((_,i)=>getTime(i+1, "start")));
+ txt += section("集合場所", getVal("meet"));
+ txt += section("集合時分", [...Array(n)].map((_,i)=>getTime(i+1, "meetTime")));
+ txt += section("出発時分", [...Array(n)].map((_,i)=>getTime(i+1, "depart")));
+ txt += "\n■回答例\n 両日小林旺太郎⭕️\n ①父⭕️母❌️弁当２つ\n ②父❌️母⭕️弁当１つ";
+ out.value=txt;
+}
+</script>
+</body>
+</html>

@@ -16,7 +16,7 @@ button{padding:10px;margin:5px;cursor:pointer}
 </style>
 </head>
 <body>
-<h2>出欠確認案内作成</h2>
+<center><h2>出欠確認案内作成</h2></center>
 
 <div class="card">
 <label>日数</label>
@@ -134,7 +134,7 @@ function render(){
         html += `
         <div class="card">
          <h3>${marks[i-1]} ${copyBtn}</h3>
-         <label>日付</label><input type="date" id="date${i}" value="${localStorage.getItem('date'+i)||''}" oninput="saveAll()">
+         <label>試合日</label><input type="date" id="date${i}" value="${localStorage.getItem('date'+i)||''}" oninput="saveAll()">
          <label>試合名</label><input id="match${i}" value="${localStorage.getItem('match'+i)||''}" oninput="saveAll()">
          <label>対戦相手</label><input id="opp${i}" value="${localStorage.getItem('opp'+i)||''}" oninput="saveAll()">
          <label>対象</label><input id="target${i}" value="${localStorage.getItem('target'+i)||'全学年'}" oninput="saveAll()">
@@ -179,7 +179,7 @@ function generate(){
  
  const getVal = (idBase) => [...Array(n)].map((_,i)=>document.getElementById(idBase+(i+1)).value);
  
- txt += "■日付\n";
+ txt += "■試合日\n";
  for(let i=1;i<=n;i++) {
     let prefix = (n > 1) ? marks[i-1] : "";
     txt+=" "+prefix+jp(document.getElementById("date"+i).value)+"\n";

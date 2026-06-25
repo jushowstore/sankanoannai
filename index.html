@@ -179,7 +179,7 @@ function generate(){
  
  const getVal = (idBase) => [...Array(n)].map((_,i)=>document.getElementById(idBase+(i+1)).value);
  
- txt += "■日時\n";
+ txt += "■日付\n";
  for(let i=1;i<=n;i++) {
     let prefix = (n > 1) ? marks[i-1] : "";
     txt+=" "+prefix+jp(document.getElementById("date"+i).value)+"\n";
@@ -200,7 +200,7 @@ function generate(){
  txt += section("集合場所", getVal("meet"));
  txt += section("集合時分", [...Array(n)].map((_,i)=>getTime(i+1, "meetTime")));
  txt += section("出発時分", [...Array(n)].map((_,i)=>getTime(i+1, "depart")));
- txt += "\n■回答例\n 両日小林旺太郎⭕️\n ①父⭕️母❌️弁当２つ\n ②父❌️母⭕️弁当１つ";
+ txt += "\n■回答例\n 全日小林旺太郎⭕️\n ①父⭕️母❌️弁当２つ\n ②父❌️母⭕️弁当１つ";
  out.value=txt;
 }
 </script>

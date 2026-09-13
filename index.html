@@ -191,14 +191,14 @@ function generate(){
      return s;
  };
 
- txt += section("試合名",  getVal("match"));
- txt += section("対戦相手",  getVal("opp"));
- txt += section("対象",  getVal("target"));
- txt += section("場所",  getVal("place"));
- txt += section("試合開始",  [...Array(n)].map((_,i)=>getTime(i+1, "start")));
- txt += section("集合場所",  getVal("meet"));
- txt += section("出発時分",  [...Array(n)].map((_,i)=>getTime(i+1, "depart")));
- txt += "\n■回答例\n  全日丹後太郎⭕️\n  ①父⭕️母❌️弁当２つ\n  ②父❌️母⭕️弁当１つ";
+ txt += section("試合名", getVal("match"));
+ txt += section("対戦相手", getVal("opp"));
+ txt += section("対象", getVal("target"));
+ txt += section("場所", getVal("place"));
+ txt += section("試合開始", [...Array(n)].map((_,i)=>getTime(i+1, "start")));
+ txt += section("集合場所", getVal("meet"));
+ txt += section("出発時分", [...Array(n)].map((_,i)=>getTime(i+1, "depart")));
+ txt += "\n■回答例\n 全日丹後太郎⭕️\n ①父⭕️母❌️弁当２つ\n ②父❌️母⭕️弁当１つ";
  out.value=txt;
 }
 </script>

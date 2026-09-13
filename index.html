@@ -178,15 +178,15 @@ function generate(){
  
  const getVal = (idBase) => [...Array(n)].map((_,i)=>document.getElementById(idBase+(i+1)).value);
  
- txt += "■試合日\n ";
+ txt += "■試合日\n";
  for(let i=1;i<=n;i++) {
     let prefix = (n > 1) ? marks[i-1] : "";
-    txt+=" "+prefix+jp(document.getElementById("date"+i).value)+"\n ";
+    txt+=" "+prefix+jp(document.getElementById("date"+i).value)+"\n";
  }
  
  const section = (t, vals) => {
-     let s = "\n■"+t+"\n ";
-     if(vals.every((v,_,arr)=>v===arr[0])) s += " "+vals[0]+"\n ";
+     let s = "\n■"+t+"\n";
+     if(vals.every((v,_,arr)=>v===arr[0])) s += " "+vals[0]+"\n";
      else vals.forEach((v,i)=>s+=" "+marks[i]+v+"\n");
      return s;
  };
